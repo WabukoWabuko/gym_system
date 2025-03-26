@@ -1,0 +1,25 @@
+# .gitignore
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/          # Ignores the virtual env folder
+*.env
+
+# Django
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# React
+node_modules/
+build/
+*.DS_Store
+
+# Misc
+*.swp
+*.bak
