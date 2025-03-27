@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHB
 from PyQt5.QtCore import Qt
 from database import GymDatabase
 from sync import SyncManager
+from datetime import datetime  # Added this import
 
 class GymApp(QMainWindow):
     def __init__(self):
