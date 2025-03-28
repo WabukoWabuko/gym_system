@@ -30,7 +30,8 @@ class BlogPost(models.Model):
 class CheckIn(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
-    synced = models.BooleanField(default=False)  # For offline sync tracking
+    checkout_time = models.DateTimeField(null=True, blank=True)  # Added
+    synced = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.member.name} - {self.timestamp}"

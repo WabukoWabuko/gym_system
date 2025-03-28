@@ -2,61 +2,37 @@ import sqlite3
 from datetime import datetime
 
 class GymDatabase:
-    def __init__(self, db_name="gym_desktop.db"):
-        self.conn = sqlite3.connect(db_name)
+    def __init__(self):
+        self.conn = sqlite3.connect("gym_local.db")
         self.create_tables()
 
     def create_tables(self):
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS checkins (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                member_id TEXT NOT NULL,
-                member_name TEXT NOT NULL,
-                timestamp TEXT NOT NULL,
-                synced INTEGER DEFAULT 0
-            )
-        ''')
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS schedules (
-                id INTEGER PRIMARY KEY,
-                title TEXT NOT NULL,
-                instructor TEXT NOT NULL,
-                start_time TEXT NOT NULL,
-                end_time TEXT NOT NULL
-            )
-        ''')
+        c = self.conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS checkins
+                     (member_id TEXT, member_name TEXT, timestamp TEXT, checkout_time TEXT, synced INTEGER)''')
+        c.execute('''CREATE TABLE IF NOT EXISTS schedules
+                     (id INTEGER PRIMARY KEY, title TEXT, instructor TEXT, start_time TEXT, end_time TEXT)''')
         self.conn.commit()
 
     def add_checkin(self, member_id, member_name):
-        cursor = self.conn.cursor()
         timestamp = datetime.now().isoformat()
-        cursor.execute('INSERT INTO checkins (member_id, member_name, timestamp) VALUES (?, ?, ?)',
-                       (member_id, member_name, timestamp))
+        c = self.conn.cursor()
+        c.execute("INSERT INTO checkins (member_id, member_name, timestamp, checkout_time, synced) VALUES (?, ?, ?, ?, 0)",
+                  (member_id, member_name, timestamp, None))
         self.conn.commit()
 
-    def get_unsynced_checkins(self):
-        cursor = self.conn.cursor()
-        cursor.execute('SELECT id, member_id, member_name, timestamp FROM checkins WHERE synced = 0')
-        return cursor.fetchall()
-
-    def mark_checkin_synced(self, checkin_id):
-        cursor = self.conn.cursor()
-        cursor.execute('UPDATE checkins SET synced = 1 WHERE id = ?', (checkin_id,))
+    def add_checkout(self, member_id, timestamp):
+        checkout_time = datetime.now().isoformat()
+        c = self.conn.cursor()
+        c.execute("UPDATE checkins SET checkout_time = ? WHERE member_id = ? AND timestamp = ? AND checkout_time IS NULL",
+                  (checkout_time, member_id, timestamp))
         self.conn.commit()
-
-    def update_schedules(self, schedules):
-        cursor = self.conn.cursor()
-        cursor.execute('DELETE FROM schedules')  # Clear old data
-        for schedule in schedules:
-            cursor.execute('INSERT OR REPLACE INTO schedules (id, title, instructor, start_time, end_time) VALUES (?, ?, ?, ?, ?)',
-                           (schedule['id'], schedule['title'], schedule['instructor'], schedule['start_time'], schedule['end_time']))
-        self.conn.commit()
+        return checkout_time
 
     def get_schedules(self):
-        cursor = self.conn.cursor()
-        cursor.execute('SELECT id, title, instructor, start_time, end_time FROM schedules')
-        return cursor.fetchall()
+        c = self.conn.cursor()
+        c.execute("SELECT * FROM schedules")
+        return c.fetchall()
 
     def close(self):
         self.conn.close()
